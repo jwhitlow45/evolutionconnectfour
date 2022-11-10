@@ -1,18 +1,35 @@
 import numpy as np
+import pygad
 import pygad.kerasga
 from kaggle_environments import make
 
 from model import create_model
 from board import isValidMove, countEmptySpaces, BOARD_WIDTH, BOARD_HEIGHT
 
-def main():
-    # create_model()
-    # isValidMove(np.zeros((6,7)), 0)
-    fitness_function('test','test')
-    pass
-
 CUR_MODEL = create_model()
 AGENT_PLAYER_NUMBER = 2
+NUM_GENERATIONS = 1000
+NUM_PARENTS_MATING = 10
+
+def main():
+    global CUR_MODEL, AGENT_PLAYER_NUMBER, NUM_GENERATIONS, NUM_PARENTS_MATING
+    
+    keras_ga = pygad.kerasga.KerasGA(model=CUR_MODEL, num_solutions=50)
+    
+    init_population = keras_ga.population_weights
+    
+    ga_instance = pygad.GA(
+        num_generations=NUM_GENERATIONS,
+        num_parents_mating=NUM_PARENTS_MATING,
+        initial_population=init_population,
+        fitness_func=fitness_function,
+        on_generation=callback_generation
+    )
+    
+    
+def callback_generation(ga_instance):
+    print("Generation = {generation}".format(generation=ga_instance.generations_completed))
+    print("Fitness    = {fitness}".format(fitness=ga_instance.best_solution()[1]))
 
 def agent(observation, config):
     global CUR_MODEL
@@ -30,7 +47,7 @@ def agent(observation, config):
     return -1
 
 def fitness_function(solution, sol_idx):
-    global CUR_MODEL
+    global CUR_MODEL, AGENT_PLAYER_NUMBER
     
     model_weights = pygad.kerasga.model_weights_as_matrix(
         model=CUR_MODEL,
