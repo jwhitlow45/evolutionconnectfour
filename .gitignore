@@ -17,3 +17,4 @@ venv.bak/
 
 # Output of games
 *.html
+*.h5
